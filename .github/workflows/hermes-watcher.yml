@@ -37,7 +37,7 @@ jobs:
           HERMES_URL: "https://www.hermes.com/us/en/category/women/bags-and-small-leather-goods/bags-and-clutches/#|"
         run: python hermes_watcher.py
 
-      - name: Commit updated snapshot (if changed)
+     - name: Commit updated snapshot (if changed)
         run: |
           if [[ -n "$(git status --porcelain snapshot.txt)" ]]; then
             echo "Snapshot changed, committing..."
@@ -45,7 +45,12 @@ jobs:
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add snapshot.txt
             git commit -m "Update snapshot [skip ci]" || echo "Nothing to commit"
-            git push
+
+            echo "Pulling latest main from origin..."
+            git pull --rebase origin main
+
+            echo "Pushing updated snapshot..."
+            git push origin HEAD:main
           else
             echo "No changes to snapshot file."
           fi
