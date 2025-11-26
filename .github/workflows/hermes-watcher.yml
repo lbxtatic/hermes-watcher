@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          # fetch full history so pull/rebase works correctly
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -33,11 +36,10 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
-          # Optional: override URL via env if you ever change it
           HERMES_URL: "https://www.hermes.com/us/en/category/women/bags-and-small-leather-goods/bags-and-clutches/#|"
         run: python hermes_watcher.py
 
-     - name: Commit updated snapshot (if changed)
+      - name: Commit updated snapshot (if changed)
         run: |
           if [[ -n "$(git status --porcelain snapshot.txt)" ]]; then
             echo "Snapshot changed, committing..."
@@ -46,11 +48,11 @@ jobs:
             git add snapshot.txt
             git commit -m "Update snapshot [skip ci]" || echo "Nothing to commit"
 
-            echo "Pulling latest main from origin..."
-            git pull --rebase origin main
+            echo "Pulling latest changes from origin/main (rebasing)..."
+            git pull --rebase origin main || echo "Pull failed, continuing anyway."
 
             echo "Pushing updated snapshot..."
-            git push origin HEAD:main
+            git push origin HEAD:main || echo "Push failed, maybe due to race; will try again next run."
           else
             echo "No changes to snapshot file."
           fi
