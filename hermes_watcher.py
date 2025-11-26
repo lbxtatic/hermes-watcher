@@ -45,13 +45,10 @@ def send_email_notification(subject: str, body: str):
     msg["To"] = EMAIL_TO
 
     try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.send_message(msg)
-        print("✅ Email notification sent.")
-    except Exception as e:
-        print(f"⚠️ Failed to send email notification: {e}")
+        resp = requests.get(url, headers=headers)
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP error: {e}")
 
 
 # ==============================
@@ -61,16 +58,11 @@ def send_email_notification(subject: str, body: str):
 def fetch_page_html(url: str) -> str:
     """Fetch HTML content for the given URL."""
     headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/122.0.0.0 Safari/537.36"
-        )
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
     }
-    resp = requests.get(url, headers=headers, timeout=20)
+    resp = requests.get(url, headers=headers)
     resp.raise_for_status()
-    return resp.text
-
 
 def extract_product_list(html: str) -> str:
     """
